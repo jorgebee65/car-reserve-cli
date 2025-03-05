@@ -13,10 +13,6 @@ public class BookingService {
     private final BookingRepository bookingRepository = new BookingRepository();
     private final CarRepository carRepository = new CarRepository();
 
-    public List<Car> getBookedCars(){
-        return bookingRepository.getBookings().stream().map(Booking::getCar).toList();
-    }
-
     public void book(Booking booking){
         bookingRepository.add(booking);
     }

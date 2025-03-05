@@ -1,7 +1,6 @@
 package com.amigos.code.repository;
 
 import com.amigos.code.model.Car;
-import com.amigos.code.model.User;
 
 import java.util.ArrayList;
 import java.util.List;
