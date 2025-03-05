@@ -7,14 +7,43 @@ import com.amigos.code.repository.BookingRepository;
 import com.amigos.code.repository.CarRepository;
 
 import java.util.List;
+import java.util.Scanner;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class BookingService {
     private final BookingRepository bookingRepository = new BookingRepository();
     private final CarRepository carRepository = new CarRepository();
 
-    public void book(Booking booking){
-        bookingRepository.add(booking);
+    public void book( UserService userService, String userId, int carId){
+        try {
+            var user = userService.getUserbyId(userId);
+            if (user == null) {
+                throw new IllegalStateException("Error: User not found");
+            }
+            var car = carRepository.getCarById(carId);
+            if (car == null) {
+                throw new IllegalStateException("Error: Car not found");
+            }
+            bookingRepository.getBookings()
+                    .stream()
+                    .filter(b -> b.getCar().getId() == car.getId())
+                    .findFirst()
+                    .ifPresent(b -> {
+                        throw new IllegalStateException("Error: Car already booked");
+                    });
+
+            UUID uuid = UUID.randomUUID();
+            var booking = new Booking(uuid.toString(), car, user);
+            bookingRepository.add(booking);
+            String confirmationMessage = """
+                        🎉 Successfully booked car with reg number %s for user %s
+                        Booking ref: %s
+                        """.formatted(car.getId(), user, uuid);
+            System.out.println(confirmationMessage);
+        }catch (Exception e){
+            System.out.println(e.getMessage());
+        }
     }
 
     public List<Car> getAvailableCars(boolean electric) {

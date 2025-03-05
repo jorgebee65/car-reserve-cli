@@ -1,17 +1,12 @@
 package com.amigos.code;
 
 import com.amigos.code.model.Booking;
-import com.amigos.code.model.Car;
-import com.amigos.code.model.User;
 import com.amigos.code.service.BookingService;
 import com.amigos.code.service.UserService;
 
-import java.util.List;
 import java.util.Scanner;
 import java.util.UUID;
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 public class Main {
 
     private static UserService userService;
@@ -33,14 +28,12 @@ public class Main {
                 System.out.println("7️⃣ - Exit");
                 System.out.print("Select an option (1-7): ");
 
-                // Validar entrada del usuario
                 while (!scanner.hasNextInt()) {
                     System.out.println("Invalid input. Please enter a number between 1 and 7.");
-                    scanner.next(); // Descartar entrada inválida
+                    scanner.next();
                 }
                 option = scanner.nextInt();
 
-                // Manejo de opciones
                 switch (option) {
                     case 1:
                         System.out.println("🚗 You selected: Book Car.");
@@ -48,23 +41,23 @@ public class Main {
                         break;
                     case 2:
                         System.out.println("📋 You selected: View All User Booked Cars.");
-                        getUsersWhoBookedCars().forEach(System.out::println);
+                        getUsersWhoBookedCars();
                         break;
                     case 3:
                         System.out.println("📜 You selected: View All Bookings.");
-                        getBookings().forEach(System.out::println);
+                        getBookings();
                         break;
                     case 4:
                         System.out.println("🚘 You selected: View Available Cars.");
-                        getAvailableCars().forEach(System.out::println);
+                        getAvailableCars(false);
                         break;
                     case 5:
                         System.out.println("🔋 You selected: View Available Electric Cars.");
-                        getAvailableElectricCars().forEach(System.out::println);
+                        getAvailableCars(true);
                         break;
                     case 6:
                         System.out.println("👥 You selected: View All Users.");
-                        getUsers().forEach(user -> System.out.println(user.toString()));
+                        getUsers();
                         break;
                     case 7:
                         System.out.println("👋 Exiting the program. Goodbye!");
@@ -72,30 +65,46 @@ public class Main {
                     default:
                         System.out.println("❌ Invalid option. Please enter a number between 1 and 7.");
                 }
-            } while (option != 7); // Repetir hasta que el usuario elija salir
+            } while (option != 7);
 
             scanner.close();
 
     }
 
-    private static List<User> getUsers() {
-        return userService.getUsers();
+    private static void getUsers() {
+        var users = userService.getUsers();
+        if(users.isEmpty()) {
+            System.out.println("❌ No users in the system");
+        } else {
+            users.forEach(user -> System.out.println(user.toString()));
+        }
     }
 
-    private static List<Car> getAvailableCars() {
-        return bookingService.getAvailableRegularCars();
+    private static void getAvailableCars(boolean isElectric) {
+        var cars = isElectric ? bookingService.getAvailableElectricCars() : bookingService.getAvailableRegularCars();
+        if(cars.isEmpty()) {
+            System.out.println("❌ No "+ ( isElectric ? "electric" : "")+" cars available for renting");
+        } else {
+            cars.forEach(System.out::println);
+        }
     }
 
-    private static List<Car> getAvailableElectricCars() {
-        return bookingService.getAvailableElectricCars();
+    private static void getBookings() {
+        var bookings = bookingService.getAllBookings();
+        if(bookings.isEmpty()) {
+            System.out.println("❌ No Bookings in the system");
+        } else {
+            bookings.forEach(booking -> System.out.println(booking.toString()));
+        }
     }
 
-    private static List<Booking> getBookings() {
-        return bookingService.getAllBookings();
-    }
-
-    private static List<User> getUsersWhoBookedCars() {
-        return bookingService.getAllUsersWhoBooked();
+    private static void getUsersWhoBookedCars() {
+        var users = bookingService.getAllUsersWhoBooked();
+        if(users.isEmpty()) {
+            System.out.println("❌ No Users who booked in the system");
+        } else {
+            users.forEach(user -> System.out.println(user.toString()));
+        }
     }
 
     private static void bookCar(Scanner scanner, BookingService bookingService, UserService userService){
@@ -105,10 +114,6 @@ public class Main {
         int carId;
         System.out.println("Insert the ID of the car you would like to book");
         carId = scanner.nextInt();
-        var user = userService.getUserbyId(userId);
-        var car = bookingService.getCarById(carId);
-        UUID uuid = UUID.randomUUID();
-        bookingService.book(new Booking(uuid.toString(), car, user));
-        System.out.println("Car Booked!");
+        bookingService.book( userService, userId, carId);
     }
 }
